@@ -46,6 +46,8 @@ use Cpanel::Form            ();
 use Cpanel::Template        ();
 use Cpanel::Comet           ();
 use Cpanel::Rlimit          ();
+use Cpanel::Version         ();
+use Cpanel::Version::Compare();
 use Cpanel::Encoder::URI    ();
 use POSIX                   ();
 
@@ -68,6 +70,11 @@ sub run {
           -e '/var/cpanel/addons/securityadvisor/templates/main.tmpl'
           ? '/var/cpanel/addons/securityadvisor/templates/main.tmpl'
           : '/usr/local/cpanel/whostmgr/docroot/templates/securityadvisor/main.tmpl';
+
+		my $installed_version = Cpanel::Version::get_lts();
+		if( $Cpanel::Version::Compare::compare( $installed_version '>=', '11.41' ) ){
+			$template_file = '/var/cpanel/addons/securityadvisor/templates/main_bootstrap.tmpl';
+		}
 
         Cpanel::Template::process_template(
             'whostmgr',
