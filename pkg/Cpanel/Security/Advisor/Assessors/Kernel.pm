@@ -1,6 +1,6 @@
 package Cpanel::Security::Advisor::Assessors::Kernel;
 
-# Copyright (c) 2014, cPanel, Inc.
+# Copyright (c) 2016, cPanel, Inc.
 # All rights reserved.
 # http://cpanel.net
 #
@@ -33,7 +33,7 @@ use Cpanel::Kernel          ();
 use Cpanel::OSSys::Env      ();
 
 sub version {
-    return '1.01.3';
+    return '1.01.4';
 }
 
 sub generate_advice {
@@ -65,14 +65,26 @@ sub _check_for_kernel_version {
         $self->add_info_advice( 'text' => ['Kernel updates are not supported on this virtualization platform. Be sure to keep the host’s kernel up to date.'] );
     }
     elsif ( (@kernel_update) ) {
-        $self->add_bad_advice(
-            'text' => [
-                'Current kernel version is out of date. running kernel: [_1], most recent kernel: [list_and,_2]',
-                $running_kernelversion,
-                \@kernel_update,
-            ],
-            'suggestion' => ['Update the system’s software by running ’yum update’ from the command line and reboot the system.'],
-        );
+    		 if( -e '/etc/digitalocean' ){
+    		     $self->add_bad_advice(
+	            'text' => [
+	                'The system is using an out of date kernel. System kernel version: [_1]. Version of the most recent kernel: [list_and,_2]',
+	                $running_kernelversion,
+	                \@kernel_update,
+	            ],
+	            'suggestion' => ['Digital Ocean droplot detected. Please run ’yum update’ to update the kernel. Next poweroff your droplet, log into your Digital Ocean control panel and change the kernel version.'],
+	        )
+    		 }
+    		 else{
+	        $self->add_bad_advice(
+	            'text' => [
+	                'Current kernel version is out of date. running kernel: [_1], most recent kernel: [list_and,_2]',
+	                $running_kernelversion,
+	                \@kernel_update,
+	            ],
+	            'suggestion' => ['Update the system’s software by running ’yum update’ from the command line and reboot the system.'],
+	        );
+        }
     }
     elsif ( ( $running_kernelversion ne $boot_kernelversion ) ) {
         $self->add_bad_advice(
