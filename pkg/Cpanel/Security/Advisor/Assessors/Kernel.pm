@@ -1,6 +1,6 @@
 package Cpanel::Security::Advisor::Assessors::Kernel;
 
-# Copyright (c) 2014, cPanel, Inc.
+# Copyright (c) 2016, cPanel, Inc.
 # All rights reserved.
 # http://cpanel.net
 #
@@ -46,6 +46,9 @@ sub generate_advice {
 sub _check_for_kernel_version {
     my ($self) = @_;
 
+    # Containers cannot manage kernels, skip all checks
+    return 1 if _in_container();
+
     my %kernel_update = kernel_updates();
     my @kernel_update = ();
     if ( ( keys %kernel_update ) ) {
@@ -56,13 +59,14 @@ sub _check_for_kernel_version {
 
     my $boot_kernelversion    = Cpanel::Kernel::get_default_boot_version();
     my $running_kernelversion = Cpanel::Kernel::get_running_version();
-    my $environment           = Cpanel::OSSys::Env::get_envtype();
 
     if ( $running_kernelversion =~ m/\.(?:noarch|x86_64|i.86).+$/ ) {
-        $self->add_info_advice( 'text' => [ 'Custom kernel version cannot be checked to see if it is up to date: [_1]', $running_kernelversion ] );
-    }
-    elsif ( ( $environment eq 'virtuozzo' ) || ( $environment eq 'lxc' ) ) {
-        $self->add_info_advice( 'text' => ['Kernel updates are not supported on this virtualization platform. Be sure to keep the host’s kernel up to date.'] );
+        $self->add_info_advice(
+            'text' => [
+                'Custom kernel version cannot be checked to see if it is up to date: [_1]',
+                $running_kernelversion
+            ]
+        );
     }
     elsif ( (@kernel_update) ) {
         $self->add_bad_advice(
@@ -91,7 +95,12 @@ sub _check_for_kernel_version {
         );
     }
     else {
-        $self->add_good_advice( 'text' => [ 'Current running kernel version is up to date: [_1]', $running_kernelversion ] );
+        $self->add_good_advice(
+            'text' => [
+                'Current running kernel version is up to date: [_1]',
+                $running_kernelversion
+            ]
+        );
     }
 
     return 1;
@@ -104,9 +113,12 @@ sub kernel_updates {
     my ( $rpm, $version, $release );
 
     foreach my $element ( 0 .. $#yum_response ) {
-        $rpm     = ( split( /:/, $yum_response[$element] ) )[1] if ( ( $yum_response[$element] =~ m/^Name/ ) );
-        $version = ( split( /:/, $yum_response[$element] ) )[1] if ( ( $yum_response[$element] =~ m/^Version/ ) );
-        $release = ( split( /:/, $yum_response[$element] ) )[1] if ( ( $yum_response[$element] =~ m/^Release/ ) );
+        $rpm = ( split( /:/, $yum_response[$element] ) )[1]
+          if ( ( $yum_response[$element] =~ m/^Name/ ) );
+        $version = ( split( /:/, $yum_response[$element] ) )[1]
+          if ( ( $yum_response[$element] =~ m/^Version/ ) );
+        $release = ( split( /:/, $yum_response[$element] ) )[1]
+          if ( ( $yum_response[$element] =~ m/^Release/ ) );
         if ( ( ($rpm) && ($version) && ($release) ) ) {
             s/\s//g foreach ( $rpm, $version, $release );
             $kernel_update{ $rpm . " " . $version . "-" . $release } = $version . "-" . $release;
@@ -117,6 +129,14 @@ sub kernel_updates {
     }
     return %kernel_update;
 }    # end of sub
+
+sub _in_container {
+    my $environment = Cpanel::OSSys::Env::get_envtype();
+    if ( ( $environment eq 'virtuozzo' ) || ( $environment eq 'lxc' ) ) {
+        return 1;
+    }
+    return 0;
+}
 
 1;
 
