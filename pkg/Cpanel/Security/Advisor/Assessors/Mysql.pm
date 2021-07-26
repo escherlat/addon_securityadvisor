@@ -30,6 +30,7 @@ use strict;
 use Cpanel::Hostname                ();
 use Cpanel::IP::Loopback            ();
 use Cpanel::IP::Parse               ();
+use Cpanel::IPv6::Has               ();
 use Cpanel::MysqlUtils              ();
 use Cpanel::MysqlUtils::MyCnf::Full ();
 use Cpanel::SafeRun::Errors         ();
@@ -190,7 +191,7 @@ sub _check_for_public_bind_address {
         }
     }
     else {
-        if ( ( @deny_rules && @deny_rules_6 ) || ( csf_port_closed($port) ) ) {
+        if ( ( @deny_rules && ( !Cpanel::IPv6::Has::system_has_ipv6() || @deny_rules_6 ) ) || ( csf_port_closed($port) ) ) {
             $self->add_good_advice(
                 'key'  => 'Mysql_port_blocked_by_firewall_2',
                 'text' => $self->_lh->maketext("The MySQL port is blocked by the firewall, effectively allowing only local connections.")
