@@ -35,7 +35,6 @@ use Cpanel::HttpUtils::Version ();
 use Cpanel::SafeRun::Errors    ();
 use Cpanel::Config::Httpd      ();
 use Cpanel::Validate::Username ();
-use Cpanel::GenSysInfo         ();
 use Cpanel::DataStore          ();
 use Cpanel::RestartSrv         ();
 use Cpanel::KernelCare         ();
@@ -241,7 +240,6 @@ sub _centos_symlink_protection {
     my $httpd_binary         = Cpanel::LoadFile::loadfile( _get_httpd_path(), { 'binmode' => 1 } );
     my $rack911              = grep { /UnhardenedSymLinks/ } $httpd_binary;
     my $jailedapache         = $security_advisor_obj->{'cpconf'}->{'jailapache'};
-    my $sysinfo              = Cpanel::GenSysInfo::run();
 
     my $is_ea4         = ( defined &Cpanel::Config::Httpd::is_ea4 && Cpanel::Config::Httpd::is_ea4() ) ? 1                                                                                                                                      : 0;
     my $bluehost_ea3   = ($is_ea4)                                                                     ? 0                                                                                                                                      : grep { /SPT_DOCROOT/ } $httpd_binary;
