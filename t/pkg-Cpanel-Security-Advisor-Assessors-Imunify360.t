@@ -96,7 +96,7 @@ my $response_imunify_enabled = Cpanel::HTTP::Client::Response->new(
 );
 $response_imunify_enabled->header( 'Content-Type', 'application/json' );
 
-plan tests => 8 + 1;
+plan tests => 9 + 1;
 
 subtest 'When Imunify360 is disabled' => sub {
     plan tests => 1;
@@ -232,6 +232,28 @@ subtest 'ImunifyAV+ advice when Imunify360 is installed' => sub {
         !( grep { /ImunifyAV/i } map { $_->{advice}->{key} } @{$advice} ),
         'ImunifyAV+ advice is not offered when Imunify360 is installed'
     ) or diag explain $advice;
+};
+
+subtest 'When RPM is broken' => sub {
+    plan tests => 1;
+    $imunify->redefine( is_imunify360_installed => sub { die "Unable to find the rpm binary" } );
+    $imunify_avp->redefine( is_product_licensed => sub { 0 } );
+    my $advice = get_advice();
+
+    is_deeply $advice,
+      [
+        {
+            'advice' => {
+                'block_notify' => 1,
+                'key'          => 'Immunify360_rpm_failure',
+                'suggestion'   => 'Ensure that yum and rpm are working on your system.',
+                'text'         => 'Unable to determine if Imunify360 is installed',
+                'type'         => 8
+            },
+            'function' => 'generate_advice',
+            'module'   => 'Cpanel::Security::Advisor::Assessors::Imunify360'
+        }
+      ];
 };
 
 sub get_advice {
