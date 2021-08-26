@@ -101,6 +101,16 @@ sub generate_advice {
     };
     if ( my $exception = $@ ) {
         print STDERR $exception;    # STDERR gets sent to ULC/logs/error_log.
+
+        if ( $exception =~ m{Unable to find the rpm binary} ) {
+            return $self->add_bad_advice(
+                key          => 'Immunify360_rpm_failure',
+                text         => "Unable to determine if Imunify360 is installed",
+                suggestion   => "Ensure that yum and rpm are working on your system.",
+                block_notify => 1,                                                       # Do not send a notification>
+            );
+        }
+
         die $exception;
     }
 
