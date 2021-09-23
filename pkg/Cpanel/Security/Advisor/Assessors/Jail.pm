@@ -46,7 +46,7 @@ sub _check_for_unjailed_users {
 
     my $security_advisor_obj = $self->{'security_advisor_obj'};
 
-    if ( ! $self->cagefs_is_enabled() ) {
+    if ( !$self->cagefs_is_enabled() ) {
         if ( -e '/var/cpanel/conf/jail/flags/mount_usr_bin_suid' ) {
             $security_advisor_obj->add_advice(
                 {
@@ -72,7 +72,7 @@ sub _check_for_unjailed_users {
         my $curr_version = $Cpanel::Version::MAJORVERSION;
         my $pwcache_ref;
 
-        if ( $curr_version ge '11.60' ) {
+        if ( Cpanel::Version::compare( $curr_version, '>=', '11.60' ) ) {
             require Cpanel::PwCache::Build;
             $pwcache_ref = Cpanel::PwCache::Build::fetch_pwcache();
         }
