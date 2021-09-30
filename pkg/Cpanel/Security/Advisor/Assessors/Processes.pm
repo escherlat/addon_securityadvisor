@@ -32,7 +32,7 @@ use base 'Cpanel::Security::Advisor::Assessors';
 
 use Cpanel::Version ();
 
-my $has_modern_cpanel_os = eval { require Cpanel::OS && $Cpanel::OS::VERSION >= 2 }
+my $has_modern_cpanel_os = eval { require Cpanel::OS && ( $Cpanel::OS::VERSION // 0 ) >= 2 }
   or require Cpanel::Sys::OS::Check;
 
 sub version {
