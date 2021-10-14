@@ -29,7 +29,7 @@ package Cpanel::Security::Advisor::Assessors;
 use strict;
 use warnings;
 
-our $VERISON = 1.1;
+our $VERSION = 1.1;
 
 use Cpanel::SafeRun::Full    ();
 use Cpanel::Version::Compare ();
@@ -40,7 +40,7 @@ sub new {
 
     my $self = bless {
         'security_advisor_obj' => $security_advisor_obj,
-        '_version'             => $VERISON
+        '_version'             => $VERSION
     }, $class;
 
     return $self;
