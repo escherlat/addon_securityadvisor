@@ -1,6 +1,6 @@
 package Cpanel::Security::Advisor::Assessors::SSH;
 
-# Copyright (c) 2013, cPanel, Inc.
+# Copyright (c) 2021, cPanel, L.L.C.
 # All rights reserved.
 # http://cpanel.net
 #
@@ -28,11 +28,12 @@ package Cpanel::Security::Advisor::Assessors::SSH;
 
 use strict;
 use Whostmgr::Services::SSH::Config ();
+use Cpanel::PackMan                 ();
 
 use base 'Cpanel::Security::Advisor::Assessors';
 
 sub version {
-    return '1.01';
+    return '1.02';
 }
 
 sub generate_advice {
@@ -95,11 +96,11 @@ sub _check_for_ssh_settings {
 sub _check_for_ssh_version {
     my ($self) = @_;
 
-    my $installed_rpms = $self->get_installed_rpms();
-    my $available_rpms = $self->get_available_rpms();
+    my $pkm     = Cpanel::PackMan->instance;
+    my $pkginfo = $pkm->pkg_hr('openssh-server');
 
-    my $current_sshversion = $installed_rpms->{'openssh-server'};
-    my $latest_sshversion  = $available_rpms->{'openssh-server'};
+    my $current_sshversion = $pkginfo->{'version_installed'};
+    my $latest_sshversion  = $pkginfo->{'version_latest'};
 
     if ( length $current_sshversion && length $latest_sshversion ) {
         if ( $current_sshversion lt $latest_sshversion ) {

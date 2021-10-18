@@ -1,6 +1,6 @@
 package Cpanel::Security::Advisor::Assessors::_Self;
 
-# Copyright (c) 2020, cPanel, L.L.C.
+# Copyright (c) 2021, cPanel, L.L.C.
 # All rights reserved.
 # http://cpanel.net
 #
@@ -41,12 +41,12 @@ use Cpanel::RPM::Versions::File ();
 # Round down to one significant figure.
 use constant OS_RPM_COUNT_WARN_THRESHOLD => 100;
 
-sub version { return '1.00'; }
+sub version { return '1.01'; }
 
 sub generate_advice {
     my ($self) = @_;
 
-    $self->_check_rpm();
+    $self->_check_rpm() if $self->_distro_uses_rpm();
 
     return 1;
 }
@@ -84,6 +84,21 @@ sub _check_rpm {
     }
 
     return;
+}
+
+sub _distro_uses_rpm {
+    my ($self) = @_;
+
+    # Optimistically try to query Cpanel::OS:
+    my $answer = eval {
+        require Cpanel::OS;
+        Cpanel::OS::is_rpm_based();
+    };
+    return $answer unless $@;
+
+    # cPanel is too old for that to work. Since the rpm program can't be relied
+    # upon, query for the existence of /etc/redhat-release:
+    return -e '/etc/redhat-release';
 }
 
 1;
